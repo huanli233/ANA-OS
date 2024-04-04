@@ -2,9 +2,11 @@
 A Magisk module that uses Gradle to build compressed packages for different devices
 
 # 目录说明
+```
 lib/template - 每个机型都共用的模块结构
 lib/file/{model} - 不同机型不同的一些文件
 lib/prop/{mode} - 不同机型不同的system.prop内容
+```
 
 # Build
 为指定机型构建模块zip
