@@ -1,0 +1,50 @@
+#!/sbin/sh
+
+#################
+# Initialization
+#################
+
+umask 022
+
+# echo before loading util_functions
+ui_print() { echo "$1"; }
+
+require_new_magisk() {
+  ui_print "***********************************"
+  ui_print "       禁止低版本安装此模块！！   "
+  ui_print "  请安装使用 Magisk v23.0+ 来安装!  "
+  ui_print "   如已是23.0+ 请尝试修复运行环境   "
+  ui_print "  Cooperated product by 白杳&新创极光 "
+  ui_print "   QQ群组1: 892637335  "
+  ui_print "   QQ群组2: 906267215  "
+  ui_print "***********************************"
+  exit 1
+}
+
+is_legacy_script() {
+  unzip -l "$ZIPFILE" install.sh | grep -q install.sh
+  return $?
+}
+
+print_modname() {
+  ui_print " Cooperated product by 白杳&新创极光  "
+  ui_print "   QQ群组1: 892637335  "
+  ui_print "   QQ群组2: 906267215  "
+  ui_print "*******************"
+}
+#########################
+# Load util_functions.sh
+#########################
+
+OUTFD=$2
+ZIPFILE=$3
+
+mount /data 2>/dev/null
+
+[ -f /data/adb/magisk/util_functions.sh ] || require_new_magisk
+. /data/adb/magisk/util_functions.sh
+[ $MAGISK_VER_CODE -lt 23000 ] && require_new_magisk
+
+install_module
+ui_print "- 已完成安装 -"
+exit 0

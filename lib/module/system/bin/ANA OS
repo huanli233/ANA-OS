@@ -1,0 +1,2 @@
+echo ANAOS version:
+getprop ro.product.ANAOS.version

@@ -1,0 +1,119 @@
+ext {
+    projectName = 'ANAOS2'
+    projectVersion = '1.4'
+    longName = 'ANA OS 2.0'
+}
+
+task createModel {
+    doLast {
+        def fileDir = file('file/' + project.target)
+        def propDir = file('prop/' + project.target)
+
+        if (!fileDir.exists()) {
+            fileDir.mkdirs()
+            println "Created folder: " + fileDir
+        }
+        
+        if (!propDir.exists()) {
+            propDir.mkdirs()
+            println "Created folder: " + propDir
+        }
+
+        def systemPropFile = new File(propDir, 'system.prop')
+        if (!systemPropFile.exists()) {
+            systemPropFile.createNewFile()
+            println "Created file: " + systemPropFile
+        }
+    }
+}
+
+task clean(type: Delete) {
+    delete 'build'
+}
+
+task deleteModel {
+    doLast {
+        def fileDir = file('file/' + project.target)
+        if (fileDir.exists()) {
+            fileDir.deleteDir()
+            println "Deleted folder: " + fileDir
+        }
+
+        def propDir = file('prop/' + project.target)
+        if (propDir.exists()) {
+            propDir.deleteDir()
+            println "Deleted folder: " + propDir
+        }
+    }
+}
+
+
+task module {
+	doLast {
+		buildModule()
+    }
+    onlyIf {
+    	project.hasProperty('target')
+    }
+}
+
+task moduleAll() {
+	dependsOn module
+    doLast {
+        def fileDir = file("file")
+        fileDir.eachDir { dir ->
+            project.ext.target = dir.name
+            buildModule()
+        }
+    }
+}
+
+def buildModule() {
+    def model = project.hasProperty('target') ? project.target : 'default'
+    def moduleDir = file("module")
+    def buildDir = file("build")
+    def longName = project.longName
+    
+    moduleDir.mkdirs()
+    
+    copy {
+        from "template"
+        into moduleDir
+    }
+    
+    File fileModelDir = file("file/${model}")
+    if (fileModelDir.exists()) {
+        copy {
+            from fileModelDir
+            into "${moduleDir}"
+        }
+    } else {
+        println "File ${model} does not exist."
+    }
+    
+    def commonPropFile = file("${moduleDir}/common/system.prop")
+    if (commonPropFile.exists()) {
+        def propModelFile = file("prop/${model}/system.prop")
+        if (propModelFile.exists()) {
+            commonPropFile << '\n' << propModelFile.text
+        } else {
+            println "File prop/${model}/system.prop does not exist."
+        }
+    } else {
+        println "File module/common/system.prop does not exist."
+    }
+    
+    def modulePropFile = file("${moduleDir}/module.prop")
+    if (modulePropFile.exists()) {
+    	modulePropFile << '\n' << "name=${longName} for ${model}"
+    } else {
+        println "File module/module.prop does not exist."
+    }
+    
+    // 压缩module文件夹中的所有文件为一个压缩包
+    def zipFileName = model != 'default' ? "${buildDir}/${projectName}-${projectVersion}-${model}.zip" : "${buildDir}/${projectName}-${projectVersion}.zip"
+    ant.zip(destfile: zipFileName, basedir: moduleDir)
+    
+    println "Module created successfully for model: ${model}"
+    println "Module files have been zipped into: ${zipFileName}"
+}

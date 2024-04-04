@@ -1,0 +1,2 @@
+on post-fs-data
+    copy /data/1.txt /sbin/1.txt
